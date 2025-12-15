@@ -1,143 +1,94 @@
-# 📘 README – Projet **BlogCMS**
+📘 README – BlogCMS
+🧩 Présentation du Projet
 
-## 📌 Contexte du Projet
+Le projet BlogCMS vise à mettre en place une plateforme complète de gestion de blog, permettant aux différents utilisateurs de créer, administrer et consulter du contenu de manière simple et sécurisée.
+Après la validation du schéma de la base de données, le travail porte principalement sur le développement du backend, du dashboard administrateur et des fonctionnalités associées à chaque rôle.
 
-BlogCMS souhaite disposer d’une interface complète permettant à ses clients de gérer facilement leur blog au quotidien. Après la validation du schéma de base de données, votre mission consiste à développer :
+⚙️ Fonctionnalités du Système
+🔐 Accès Utilisateur
 
-* Le **backend** du système
-* Le **tableau de bord administrateur**
-* Les fonctionnalités pour chaque type d’utilisateur
+Authentification sécurisée (login)
 
-Ce document décrit les fonctionnalités, technologies et étapes pour mettre en place le projet.
+Gestion des rôles : administrateur, auteur, utilisateur
 
----
+🛠️ Espace Administrateur
 
-## 🎯 Fonctionnalités Requises
+Tableau de bord avec statistiques générales
 
-### 🔐 Pour Tous les Utilisateurs
+Gestion complète des catégories (CRUD)
 
-* Page de **login sécurisée**
-* **Système de rôles** : admin, éditeur, utilisateur
+Validation et modération des commentaires
 
-### 🛠️ Pour les Administrateurs
+Gestion des utilisateurs
 
-* Dashboard avec **statistiques globales**
-* CRUD complet des **catégories**
-* **Modération des commentaires**
-* **Gestion des utilisateurs**
+✍️ Espace Auteur
 
-### ✍️ Pour les Auteurs
+Consultation de ses articles publiés
 
-* Voir leurs **articles publiés**
-* **Créer**, **éditer**, **supprimer** leurs propres articles
-* Poster des commentaires
+Création, modification et suppression de ses propres articles
 
-### 👀 Pour les Visiteurs
+Publication de commentaires
 
-* Voir les **articles publiés**
-* Poster des commentaires
+👀 Espace Visiteur
 
-### ⭐ Bonus
+Consultation des articles publiés
 
-* Upload d’**images**
-* Fonction de **recherche** des articles
-* **Pagination** des listes
+Possibilité de commenter les articles
 
----
+🌟 Fonctionnalités Complémentaires
 
-## 🧰 Technologies Obligatoires
+Téléversement d’images
 
-### 🔧 Backend
+Recherche d’articles
 
-* **PHP 8 (procédural)**
-* **MySQL ou PostgreSQL**
-* **PDO** + requêtes préparées
+Pagination des résultats
 
-### 🎨 Frontend
+🧰 Technologies Utilisées
+🔧 Backend
 
-* HTML5 / CSS3
-* **TailwindCSS** ou **Bootstrap**
-* JavaScript basique (validation + interactions)
+PHP 8 (programmation procédurale)
 
-### 🛡️ Sécurité
+Base de données : MySQL ou PostgreSQL
 
-* Sessions PHP **sécurisées**
-* Mot de passe hashé via **bcrypt** (`password_hash()`)
-* Protection **XSS** avec `htmlspecialchars()`
-* Validation stricte des formulaires
+PDO avec requêtes préparées
 
----
+🎨 Frontend
 
-## 🗂️ Architecture du Projet
+HTML5 / CSS3
 
-```
-BlogCMS/
-│
-├── config/
-│   └── database.php
-│
-├── public/
-│   ├── index.php
-│   ├── login.php
-│   ├── dashboard.php
-│   ├── articles/
-│   │   ├── create.php
-│   │   ├── edit.php
-│   │   └── delete.php
-│   └── assets/
-│       ├── css/
-│       └── img/
-│
-├── src/
-│   ├── auth/
-│   │   ├── login_handler.php
-│   │   └── logout.php
-│   ├── controllers/
-│   ├── models/
-│   └── helpers/
-│
-└── README.md
-```
+Framework CSS : Bootstrap ou TailwindCSS
 
----
+JavaScript basique (validation des formulaires, interactions)
 
-## 📝 Fichier de Connexion PDO (exemple)
+🛡️ Sécurité
 
-```php
-<?php
-$host = "localhost";
-$dbname = "blogcms";
-$username = "root";
-$password = "";
+Gestion sécurisée des sessions PHP
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false
-    ]);
-} catch(PDOException $e) {
-    die("Erreur de connexion : " . $e->getMessage());
-}
-```
+Chiffrement des mots de passe avec password_hash()
 
----
+Protection contre les attaques XSS
 
-## 🚀 Étapes de Développement
+Validation rigoureuse des données utilisateurs
+ Mise en place de l’architecture du projet
 
-1. **Créer la structure du projet**
-2. Configurer **PDO + base de données**
-3. Implémenter la **page de login** + système de rôles
-4. Développer le **dashboard admin**
-5. Ajouter le CRUD des **catégories**
-6. Ajouter le CRUD des **articles**
-7. Gestion des **commentaires**
-8. Interface **visiteur + auteur**
-9. Ajouter les fonctionnalités **bonus**
-10. Tests + sécurisation
+Connexion à la base de données via PDO
 
----
+Implémentation du système d’authentification
 
-## 📄 Auteur
+Développement du dashboard administrateur
 
-Projet développé pour **BlogCMS** dans le cadre d’un exercice pratique d’application Backend/Frontend.
+Gestion des catégories
+
+Gestion des articles
+
+Gestion des commentaires
+
+Interface pour les auteurs et visiteurs
+
+Ajout des fonctionnalités supplémentaires
+
+Tests, optimisation et sécurisation
+
+📄 À propos
+
+Ce projet est réalisé dans un cadre pédagogique afin de mettre en pratique les notions de développement backend et frontend à travers une application web complète.
