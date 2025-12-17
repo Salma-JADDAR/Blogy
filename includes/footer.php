@@ -1,34 +1,54 @@
-    <!-- Footer -->
-    <footer class="bg-dark text-white mt-5">
-        <div class="container py-5">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5><?= SITE_NAME ?></h5>
-                    <p>Plateforme de blogging et de partage de connaissances.</p>
+</main>
+
+<footer id="footer" class="footer">
+    <div class="container footer-top">
+        <div class="row gy-4 justify-content-center">
+            <div class="col-lg-4 col-md-6 footer-about text-center">
+                <a href="index.php" class="logo d-flex align-items-center justify-content-center">
+                    <span class="sitename"><?php echo SITE_NAME; ?></span>
+                </a>
+                <div class="footer-contact pt-3">
+                    <p>Blog professionnel</p>
+                    <p class="mt-3"><strong>Email:</strong> <span><?php echo SITE_EMAIL; ?></span></p>
                 </div>
-                <div class="col-md-4">
-                    <h5>Liens rapides</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="../core/index.php" class="text-white-50 text-decoration-none">Accueil</a></li>
-                        <li><a href="../public/search.php" class="text-white-50 text-decoration-none">Recherche</a></li>
-                        <li><a href="../core/login.php" class="text-white-50 text-decoration-none">Connexion</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Contact</h5>
-                    <p><i class="bi bi-envelope me-2"></i> <?= ADMIN_EMAIL ?></p>
-                    <p>&copy; <?= date('Y') ?> <?= SITE_NAME ?>. Tous droits réservés.</p>
+                <div class="social-links d-flex mt-4 justify-content-center">
+                    <a href=""><i class="bi bi-twitter-x"></i></a>
+                    <a href=""><i class="bi bi-facebook"></i></a>
+                    <a href=""><i class="bi bi-instagram"></i></a>
+                    <a href=""><i class="bi bi-linkedin"></i></a>
                 </div>
             </div>
+            
+            <div class="col-lg-2 col-md-3 footer-links text-center">
+                <h4>Navigation</h4>
+                <ul class="list-unstyled">
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="about.php">About</a></li>
+                    <li><a href="category.php">Category</a></li>
+                    <li><a href="contact.php">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-3 footer-links text-center">
+                <h4>Catégories</h4>
+                <ul class="list-unstyled">
+                    <?php 
+                    $categories = getCategories();
+                    foreach(array_slice($categories, 0, 5) as $cat): ?>
+                        <li><a href="category.php?id=<?php echo $cat['id_categorie']; ?>">
+                            <?php echo htmlspecialchars($cat['nom_categorie']); ?>
+                        </a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
         </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/script.js"></script>
+    </div>
     
-    <!-- Scripts additionnels -->
-    <?php if (isset($additionalScripts)) echo $additionalScripts; ?>
-    
-</body>
-</html>
+    <div class="container copyright text-center mt-4">
+        <p>© <span>Copyright</span> <strong class="px-1 sitename"><?php echo SITE_NAME; ?></strong> 
+           <span>All Rights Reserved</span></p>
+        <div class="credits">
+            <?php echo date('Y'); ?> - Développé avec PHP & MySQL
+        </div>
+    </div>
+</footer>

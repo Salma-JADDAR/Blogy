@@ -1,118 +1,293 @@
 <?php
-// Fonctions utilitaires pour le projet
-
 /**
- * Upload une image
+ * Récupère tous les articles publiés
  */
-function uploadImage($file, $targetDir = UPLOAD_DIR) {
-    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
-        return ['success' => false, 'message' => 'Erreur lors du téléchargement'];
-    }
+function getArticles($limit = 10, $offset = 0) {
+    global $pdo;
     
-    // Vérifier le type MIME
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
+    $sql = "SELECT a.*, u.nom as auteur_nom, c.nom_categorie 
+            FROM Article a 
+            JOIN Utilisateur u ON a.username = u.username 
+            JOIN Categorie c ON a.id_categorie = c.id_categorie 
+            WHERE a.status = 'published' 
+            ORDER BY a.date_creation DESC 
+            LIMIT :limit OFFSET :offset";
     
-    if (!in_array($mimeType, $allowedTypes)) {
-        return ['success' => false, 'message' => 'Type de fichier non autorisé'];
-    }
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
     
-    // Vérifier la taille (max 5MB)
-    if ($file['size'] > 5 * 1024 * 1024) {
-        return ['success' => false, 'message' => 'Le fichier est trop volumineux (max 5MB)'];
-    }
-    
-    // Générer un nom unique
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $fileName = uniqid() . '_' . date('Ymd') . '.' . $extension;
-    $targetPath = $targetDir . $fileName;
-    
-    // Créer le dossier s'il n'existe pas
-    if (!is_dir($targetDir)) {
-        mkdir($targetDir, 0755, true);
-    }
-    
-    // Déplacer le fichier
-    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-        return ['success' => true, 'filename' => $fileName];
-    }
-    
-    return ['success' => false, 'message' => 'Erreur lors du déplacement du fichier'];
+    return $stmt->fetchAll();
 }
 
 /**
- * Nettoyer les données d'entrée
+ * Récupère un article par son ID
  */
-function sanitizeInput($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-    return $data;
+function getArticleById($id) {
+    global $pdo;
+    
+    $sql = "SELECT a.*, u.nom as auteur_nom, c.nom_categorie 
+            FROM Article a 
+            JOIN Utilisateur u ON a.username = u.username 
+            JOIN Categorie c ON a.id_categorie = c.id_categorie 
+            WHERE a.id_article = :id";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    return $stmt->fetch();
 }
 
 /**
- * Générer un slug
+ * Récupère les articles par catégorie
+ */
+function getArticlesByCategory($category_id, $limit = 10) {
+    global $pdo;
+    
+    $sql = "SELECT a.*, u.nom as auteur_nom, c.nom_categorie 
+            FROM Article a 
+            JOIN Utilisateur u ON a.username = u.username 
+            JOIN Categorie c ON a.id_categorie = c.id_categorie 
+            WHERE a.id_categorie = :category_id 
+            AND a.status = 'published' 
+            ORDER BY a.date_creation DESC 
+            LIMIT :limit";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':category_id', $category_id, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    return $stmt->fetchAll();
+}
+
+/**
+ * Récupère toutes les catégories
+ */
+/**
+ * Récupère toutes les catégories
+ */
+function getCategories() {
+    global $pdo;
+    
+    try {
+        $sql = "SELECT c.*, 
+                COALESCE(
+                    (SELECT COUNT(*) 
+                     FROM Article a 
+                     WHERE a.id_categorie = c.id_categorie 
+                     AND a.status = 'published'
+                    ), 0
+                ) as nb_articles 
+                FROM Categorie c 
+                ORDER BY c.nom_categorie";
+        
+        $stmt = $pdo->query($sql);
+        return $stmt->fetchAll();
+    } catch(PDOException $e) {
+        error_log("Erreur dans getCategories(): " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Récupère les commentaires d'un article
+ */
+function getComments($article_id) {
+    global $pdo;
+    
+    try {
+        $sql = "SELECT c.*, COALESCE(u.nom, 'Anonyme') as username_display 
+                FROM Commentaire c 
+                LEFT JOIN Utilisateur u ON c.username = u.username 
+                WHERE c.id_article = :article_id 
+                AND c.status = 'approved' 
+                ORDER BY c.date_commentaire DESC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':article_id', $article_id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    } catch(PDOException $e) {
+        error_log("Erreur récupération commentaires: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Ajoute un commentaire et retourne les données
+ */
+function addComment($article_id, $data) {
+    global $pdo;
+    
+    try {
+        // Valider l'email pour les utilisateurs non connectés
+        if (!isset($data['username']) && empty($data['email'])) {
+            throw new Exception("Email est requis pour les utilisateurs non connectés");
+        }
+        
+        if (!isset($data['username']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Email invalide");
+        }
+        
+        // Valider le contenu
+        if (empty(trim($data['contenu']))) {
+            throw new Exception("Le commentaire ne peut pas être vide");
+        }
+        
+        if (strlen(trim($data['contenu'])) > 1000) {
+            throw new Exception("Le commentaire ne peut pas dépasser 1000 caractères");
+        }
+        
+        // Préparer la requête SQL
+        $sql = "INSERT INTO Commentaire (contenu, username, email, id_article, status) 
+                VALUES (:contenu, :username, :email, :article_id, 'approved')";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':contenu', trim($data['contenu']));
+        $stmt->bindValue(':username', $data['username'] ?? null);
+        $stmt->bindValue(':email', trim($data['email'] ?? ''));
+        $stmt->bindValue(':article_id', $article_id, PDO::PARAM_INT);
+        
+        if ($stmt->execute()) {
+            // Récupérer l'ID du commentaire inséré
+            $comment_id = $pdo->lastInsertId();
+            
+            // Récupérer les données complètes du commentaire
+            $sql = "SELECT c.*, 
+                    COALESCE(u.nom, 
+                    CASE 
+                        WHEN c.username IS NOT NULL THEN c.username
+                        ELSE SUBSTRING_INDEX(c.email, '@', 1)
+                    END) as username_display 
+                    FROM Commentaire c 
+                    LEFT JOIN Utilisateur u ON c.username = u.username 
+                    WHERE c.id_commentaire = :id";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':id', $comment_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $comment = $stmt->fetch();
+            
+            // Formater la date pour l'affichage
+            if ($comment) {
+                $date = new DateTime($comment['date_commentaire']);
+                $comment['date_formatted'] = $date->format('d M, Y à H:i');
+            }
+            
+            return $comment;
+        }
+        
+        return false;
+    } catch(PDOException $e) {
+        error_log("Erreur d'ajout de commentaire: " . $e->getMessage());
+        throw new Exception("Erreur de base de données: " . $e->getMessage());
+    } catch(Exception $e) {
+        error_log("Erreur validation commentaire: " . $e->getMessage());
+        throw $e;
+    }
+}
+
+/**
+ * Vérifie si l'utilisateur est connecté
+ */
+function isLoggedIn() {
+    return isset($_SESSION['user']);
+}
+
+/**
+ * Vérifie si l'utilisateur est admin
+ */
+function isAdmin() {
+    return isset($_SESSION['user']) && $_SESSION['user']['role'] == 'admin';
+}
+
+/**
+ * Formatte la date
+ */
+function formatDate($date_string) {
+    $date = new DateTime($date_string);
+    return $date->format('d M, Y');
+}
+
+/**
+ * Génère un slug à partir d'un titre
  */
 function generateSlug($string) {
-    $string = strtolower($string);
-    $string = preg_replace('/[^a-z0-9-]/', '-', $string);
-    $string = preg_replace('/-+/', '-', $string);
-    $string = trim($string, '-');
-    return $string;
+    $slug = strtolower($string);
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+    $slug = trim($slug, '-');
+    return $slug;
 }
 
-/**
- * Formater la date
- */
-function formatDate($dateString, $format = 'd/m/Y') {
-    return date($format, strtotime($dateString));
-}
 
 /**
- * Obtenir les catégories
+ * Generate pagination links
  */
-function getCategories($pdo) {
-    $stmt = $pdo->query("SELECT * FROM Categorie ORDER BY nom_categorie");
-    return $stmt->fetchAll();
-}
-
-/**
- * Obtenir les articles populaires
- */
-function getPopularArticles($pdo, $limit = 5) {
-    $stmt = $pdo->prepare("
-        SELECT a.*, u.nom, c.nom_categorie 
-        FROM Article a 
-        LEFT JOIN Utilisateur u ON a.username = u.username 
-        LEFT JOIN Categorie c ON a.id_categorie = c.id_categorie 
-        WHERE a.status = 'published' 
-        ORDER BY a.view_count DESC 
-        LIMIT ?
-    ");
-    $stmt->execute([$limit]);
-    return $stmt->fetchAll();
-}
-
-/**
- * Incrémenter le compteur de vues
- */
-function incrementViewCount($pdo, $articleId) {
-    $stmt = $pdo->prepare("
-        UPDATE Article SET view_count = view_count + 1 
-        WHERE id_article = ?
-    ");
-    return $stmt->execute([$articleId]);
-}
-
-/**
- * Vérifier si l'utilisateur peut éditer un article
- */
-function canEditArticle($articleAuthor, $userRole, $username) {
-    if ($userRole === 'admin' || $userRole === 'editor') {
-        return true;
+function generatePagination($current_page, $total_pages, $base_url, $additional_params = '') {
+    if ($total_pages <= 1) {
+        return '';
     }
-    return $articleAuthor === $username;
+    
+    $html = '<div class="pagination-section">';
+    $html .= '<nav aria-label="Page navigation">';
+    $html .= '<ul class="pagination-list">';
+    
+    // Previous button
+    if ($current_page > 1) {
+        $html .= '<li><a href="' . $base_url . '?page=' . ($current_page - 1) . $additional_params . '"><i class="bi bi-chevron-left"></i></a></li>';
+    } else {
+        $html .= '<li class="disabled"><span><i class="bi bi-chevron-left"></i></span></li>';
+    }
+    
+    // Calculate page range
+    $start_page = max(1, $current_page - 2);
+    $end_page = min($total_pages, $start_page + 4);
+    
+    if ($end_page - $start_page < 4 && $start_page > 1) {
+        $start_page = max(1, $end_page - 4);
+    }
+    
+    // First page
+    if ($start_page > 1) {
+        $html .= '<li><a href="' . $base_url . '?page=1' . $additional_params . '">1</a></li>';
+        if ($start_page > 2) {
+            $html .= '<li class="dots"><span>...</span></li>';
+        }
+    }
+    
+    // Page numbers
+    for ($i = $start_page; $i <= $end_page; $i++) {
+        if ($i == $current_page) {
+            $html .= '<li class="active"><span>' . $i . '</span></li>';
+        } else {
+            $html .= '<li><a href="' . $base_url . '?page=' . $i . $additional_params . '">' . $i . '</a></li>';
+        }
+    }
+    
+    // Last page
+    if ($end_page < $total_pages) {
+        if ($end_page < $total_pages - 1) {
+            $html .= '<li class="dots"><span>...</span></li>';
+        }
+        $html .= '<li><a href="' . $base_url . '?page=' . $total_pages . $additional_params . '">' . $total_pages . '</a></li>';
+    }
+    
+    // Next button
+    if ($current_page < $total_pages) {
+        $html .= '<li><a href="' . $base_url . '?page=' . ($current_page + 1) . $additional_params . '"><i class="bi bi-chevron-right"></i></a></li>';
+    } else {
+        $html .= '<li class="disabled"><span><i class="bi bi-chevron-right"></i></span></li>';
+    }
+    
+    $html .= '</ul>';
+    $html .= '</nav>';
+    $html .= '</div>';
+    
+    return $html;
 }
 ?>
