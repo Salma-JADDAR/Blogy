@@ -136,7 +136,7 @@ if (!empty($search_query)) {
 </div>
 
 <style>
-/* نفس الـ CSS من category.php */
+
 .blog-post-item {
     background: #fff;
     border-radius: 10px;

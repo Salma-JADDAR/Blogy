@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
         body.register-page {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background:linear-gradient(135deg, #f75815 0%, #e77f52 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .form-control:focus {
-            border-color: #6a11cb;
+            border-color: #f75815
             box-shadow: 0 0 0 0.2rem rgba(106, 17, 203, 0.25);
         }
         
@@ -174,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .btn-register {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, #f75815 0%, #e77f52 100%);
             border: none;
             color: white;
             padding: 14px;
@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .register-footer a {
-            color: #6a11cb;
+            color: #f75815;
             text-decoration: none;
             font-weight: 500;
         }
@@ -228,8 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body class="<?php echo $body_class; ?>">
     <div class="register-card">
         <div class="register-header">
-            <div class="logo" style="font-size: 36px; color: #6a11cb; margin-bottom: 15px;">
-                <i class="bi bi-person-plus"></i>
+            <div class="logo" style="font-size: 36px; color: #f75815;margin-bottom: 15px;">
+                <i class="bi bi-person-plus" ></i>
             </div>
             <h1>Créer un compte</h1>
             <p>Rejoignez <?php echo SITE_NAME; ?></p>

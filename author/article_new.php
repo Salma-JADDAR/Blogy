@@ -87,51 +87,574 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?> - <?php echo SITE_NAME; ?></title>
     <?php require_once '../includes/header.php'; ?>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        .editor-container {
+        /* Variables de couleurs */
+        :root {
+            --primary-color: #f75815;
+            --primary-light: #ff7c47;
+            --secondary-color: #667eea;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f9fafb;
+            --gray-color: #6b7280;
+            --border-color: #e5e7eb;
+        }
+        
+        /* Carte article - MODIFIÉ POUR 1 CARTE PAR LIGNE (mais style similaire) */
+        .article-card {
             background: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
         
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            padding: 12px;
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-light);
         }
         
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--primary-light));
+            border-radius: 16px 0 0 16px;
         }
         
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
+        .article-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            gap: 1.5rem;
+        }
+        
+        .article-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
             color: white;
-            padding: 12px 30px;
-            border-radius: 8px;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        }
+        
+        .article-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        
+        .article-title {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .article-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+            line-height: 1.3;
+            flex: 1;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        
+        .status-published { 
+            background: linear-gradient(135deg, var(--success-color), #34d399);
+            color: white;
+        }
+        
+        .status-draft { 
+            background: linear-gradient(135deg, var(--warning-color), #fbbf24);
+            color: white;
+        }
+        
+        .form-section {
+            margin-top: 2rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: white;
+            font-family: inherit;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(247, 88, 21, 0.1);
+        }
+        
+        .form-control-lg {
+            font-size: 1.25rem;
             font-weight: 600;
         }
         
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        #contenu {
+        textarea.form-control {
+            resize: vertical;
             min-height: 300px;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
         }
         
-        .author-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
+        /* Sidebar Card */
+        .sidebar-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--primary-light));
+            border-radius: 16px 0 0 16px;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sidebar-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(247, 88, 21, 0.3);
+            flex-shrink: 0;
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .sidebar-title::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-color);
+            margin-top: 8px;
+            border-radius: 2px;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            background: #e5e7eb;
+            transform: translateX(5px);
+        }
+        
+        .stat-label {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            color: var(--dark-color);
+            font-size: 1.1rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(247, 88, 21, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--dark-color);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--light-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Alertes */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* ===== HEADER AVEC COULEUR #f75815 ===== */
+        .orange-header {
+            background: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            border-left: 5px solid #f75815;
+            box-shadow: 0 4px 12px rgba(247, 88, 21, 0.08);
+        }
+
+        .header-icon-orange {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #f75815, #ff7c47);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 26px;
+            box-shadow: 0 4px 12px rgba(247, 88, 21, 0.3);
+        }
+
+        .header-title-orange {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .header-title-orange::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: #f75815;
+            margin-top: 8px;
+            border-radius: 2px;
+        }
+
+        .breadcrumb-orange {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .breadcrumb-link {
+            color: #6b7280;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumb-link:hover {
+            color: #f75815;
+        }
+
+        .breadcrumb-separator {
+            color: #d1d5db;
+        }
+
+        .breadcrumb-current {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .header-desc {
+            color: #6b7280;
+            font-size: 0.95rem;
+            max-width: 600px;
+            margin: 1rem 0 0 0;
+        }
+
+        .admin-card-orange {
+            display: inline-block;
+            background: #f9fafb;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+
+        .admin-card-orange:hover {
+            background: white;
+            border-color: #f75815;
+            box-shadow: 0 4px 12px rgba(247, 88, 21, 0.1);
+        }
+
+        .admin-avatar-orange {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #f75815, #ff7c47);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            box-shadow: 0 3px 8px rgba(247, 88, 21, 0.3);
+        }
+
+        .admin-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.95rem;
+        }
+
+        .admin-status {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .stats-container {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box-orange {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .stat-box-orange:hover {
+            transform: translateY(-5px);
+            border-color: #f75815;
+            box-shadow: 0 8px 20px rgba(247, 88, 21, 0.1);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(247, 88, 21, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f75815;
+            font-size: 22px;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin: 0.25rem 0 0 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .orange-header {
+                padding: 1.5rem 0;
+            }
+            
+            .header-title-orange {
+                font-size: 1.5rem;
+            }
+            
+            .header-icon-orange {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+            
+            .stat-box-orange {
+                padding: 1rem;
+            }
+            
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            
+            .admin-card-orange {
+                margin-top: 1rem;
+            }
+            
+            .article-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .article-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+            
+            .article-name {
+                font-size: 1.3rem;
+            }
+        }
+        
+        /* Animation pour les modals */
+        .modal.fade .modal-dialog {
+            transform: translate(0, -50px);
+            transition: transform 0.3s ease-out;
+        }
+        
+        .modal.show .modal-dialog {
+            transform: translate(0, 0);
+        }
+        
+        /* Status selector */
+        .status-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .status-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .status-option:hover {
+            border-color: var(--primary-color);
+            background: rgba(247, 88, 21, 0.05);
+        }
+        
+        .status-option.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+        
+        .char-counter {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-top: 5px;
+        }
+        
+        .hint-text {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
@@ -141,38 +664,150 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="main">
         <div class="container py-5">
             <!-- Page Header -->
-            <div class="mb-4">
-                <h1 class="mb-2">Créer un nouvel article</h1>
-                <p class="text-muted">Remplissez les champs ci-dessous pour créer votre article</p>
+            <div class="orange-header">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="header-icon-orange me-3">
+                                    <i class="bi bi-plus-square"></i>
+                                </div>
+                                <div>
+                                    <h1 class="header-title-orange mb-1">Créer un nouvel article</h1>
+                                    <nav class="breadcrumb-orange">
+                                        <a href="dashboard.php" class="breadcrumb-link">Dashboard</a>
+                                        <span class="breadcrumb-separator">/</span>
+                                        <a href="articles.php" class="breadcrumb-link">Articles</a>
+                                        <span class="breadcrumb-separator">/</span>
+                                        <span class="breadcrumb-current">Nouvel article</span>
+                                    </nav>
+                                </div>
+                            </div>
+                            <p class="header-desc">
+                                <i class="bi bi-pencil me-1"></i>
+                                Rédigez votre nouvel article en remplissant le formulaire ci-dessous
+                            </p>
+                        </div>
+                        
+                        <div class="col-md-4 text-md-end">
+                            <div class="d-flex flex-column align-items-end gap-3">
+                                <a href="articles.php" 
+                                   class="btn btn-secondary" style="border:1px solid #f75815; color:#f75815;">
+                                    <i class="bi bi-arrow-left me-1"></i> Retour aux articles
+                                </a>
+                                <div class="admin-card-orange">
+                                    <div class="d-flex align-items-center">
+                                        <div class="admin-avatar-orange me-2">
+                                            <?php 
+                                            $adminInitial = isset($_SESSION['user']['nom']) ? strtoupper(substr($_SESSION['user']['nom'], 0, 1)) : 'U';
+                                            echo $adminInitial;
+                                            ?>
+                                        </div>
+                                        <div class="text-start">
+                                            <div class="admin-name"><?php echo htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur'); ?></div>
+                                            <div class="admin-status">
+                                                <i class="bi bi-circle-fill text-success me-1"></i>
+                                                <span><?php echo htmlspecialchars($_SESSION['user']['role']); ?></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-container mt-4">
+                        <div class="row g-3">
+                            <div class="col-md-3 col-sm-6">
+                                <div class="stat-box-orange">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-calendar3"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h3 class="stat-number"><?php echo date('d/m/Y'); ?></h3>
+                                        <p class="stat-label">Date du jour</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 col-sm-6">
+                                <div class="stat-box-orange">
+                                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h3 class="stat-number"><?php echo htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur'); ?></h3>
+                                        <p class="stat-label">Auteur</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 col-sm-6">
+                                <div class="stat-box-orange">
+                                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                                        <i class="bi bi-bookmark"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h3 class="stat-number"><?php echo count($categories); ?></h3>
+                                        <p class="stat-label">Catégories disponibles</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 col-sm-6">
+                                <div class="stat-box-orange">
+                                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h3 class="stat-number">Nouveau</h3>
+                                        <p class="stat-label">Article en création</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <!-- Message d'alerte -->
+            <!-- Messages d'alerte -->
             <?php if ($message): ?>
                 <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
-                    <?php echo $message; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="d-flex align-items-center">
+                        <i class="bi <?php echo $message_type == 'success' ? 'bi-check-circle fs-4 me-3' : 'bi-exclamation-triangle fs-4 me-3'; ?>"></i>
+                        <div class="flex-grow-1">
+                            <?php echo $message; ?>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 </div>
             <?php endif; ?>
             
-            <!-- Informations de l'auteur -->
-            <div class="author-info">
-                <div class="row">
-                    <div class="col-md-6">
-                        <strong>Auteur:</strong> <?php echo htmlspecialchars($_SESSION['user']['nom']); ?>
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Rôle:</strong> <?php echo $_SESSION['user']['role']; ?>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Formulaire -->
-            <div class="editor-container">
-                <form method="POST" action="" id="articleForm">
-                    <div class="row">
-                        <div class="col-lg-8">
+            <div class="row">
+                <!-- Colonne principale - Création de l'article -->
+                <div class="col-lg-8">
+                    <div class="article-card">
+                        <div class="article-header">
+                            <div class="article-icon">
+                                <i class="bi bi-file-earmark-plus"></i>
+                            </div>
+                            <div class="article-info">
+                                <div class="article-title">
+                                    <h1 class="article-name">Rédiger votre nouvel article</h1>
+                                    <span class="status-badge status-draft">
+                                        Brouillon
+                                    </span>
+                                </div>
+                                <div style="color: var(--gray-color); font-size: 0.9rem;">
+                                    <i class="bi bi-info-circle"></i>
+                                    Remplissez tous les champs obligatoires pour créer votre article
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form method="POST" action="" id="articleForm">
                             <!-- Titre -->
-                            <div class="mb-4">
+                            <div class="form-group">
                                 <label for="titre" class="form-label">Titre de l'article *</label>
                                 <input type="text" 
                                        class="form-control form-control-lg" 
@@ -180,169 +815,312 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                        name="titre" 
                                        value="<?php echo htmlspecialchars($_POST['titre'] ?? ''); ?>"
                                        required
-                                       placeholder="Un titre accrocheur pour votre article">
+                                       placeholder="Entrez un titre accrocheur pour votre article..."
+                                       maxlength="200">
+                                <div class="char-counter" id="titleCounter">0/200 caractères</div>
+                            </div>
+                            
+                            <!-- Résumé -->
+                            <div class="form-group">
+                                <label for="excerpt" class="form-label">Résumé (optionnel)</label>
+                                <textarea class="form-control" 
+                                          id="excerpt" 
+                                          name="excerpt" 
+                                          rows="3"
+                                          placeholder="Un court résumé qui apparaîtra dans les aperçus de l'article..."
+                                          maxlength="200"><?php echo htmlspecialchars($_POST['excerpt'] ?? ''); ?></textarea>
+                                <div class="char-counter" id="excerptCounter">0/200 caractères</div>
+                                <div class="hint-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    Ce résumé sera visible dans la liste des articles
+                                </div>
                             </div>
                             
                             <!-- Contenu -->
-                            <div class="mb-4">
-                                <label for="contenu" class="form-label">Contenu *</label>
-                                <textarea id="contenu" name="contenu" rows="15" required><?php echo htmlspecialchars($_POST['contenu'] ?? ''); ?></textarea>
+                            <div class="form-group">
+                                <label for="contenu" class="form-label">Contenu de l'article *</label>
+                                <textarea class="form-control" 
+                                          id="contenu" 
+                                          name="contenu" 
+                                          rows="15"
+                                          required
+                                          placeholder="Commencez à rédiger votre article ici..."><?php echo htmlspecialchars($_POST['contenu'] ?? ''); ?></textarea>
+                                <div class="hint-text">
+                                    <i class="bi bi-lightbulb"></i>
+                                    Utilisez des paragraphes clairs et des titres pour une meilleure lisibilité
+                                </div>
                             </div>
+                            
+                            <input type="hidden" id="status" name="status" value="draft">
+                            <input type="hidden" name="id_categorie" id="selected_category">
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Sidebar - Paramètres -->
+                <div class="col-lg-4">
+                    <!-- Catégorie -->
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <div class="sidebar-icon">
+                                <i class="bi bi-bookmark"></i>
+                            </div>
+                            <h3 class="sidebar-title">Catégorie</h3>
                         </div>
-                        
-                        <div class="col-lg-4">
-                            <!-- Paramètres -->
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="bi bi-gear"></i> Paramètres</h5>
-                                </div>
-                                <div class="card-body">
-                                    <!-- Catégorie -->
-                                    <div class="mb-3">
-                                        <label for="id_categorie" class="form-label">Catégorie *</label>
-                                        <select class="form-select" id="id_categorie" name="id_categorie" required>
-                                            <option value="">Sélectionner une catégorie</option>
-                                            <?php foreach($categories as $cat): ?>
-                                                <option value="<?php echo $cat['id_categorie']; ?>" 
-                                                    <?php echo ($_POST['id_categorie'] ?? '') == $cat['id_categorie'] ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($cat['nom_categorie']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    
-                                    <!-- Statut -->
-                                    <div class="mb-3">
-                                        <label for="status" class="form-label">Statut</label>
-                                        <select class="form-select" id="status" name="status" 
-                                                <?php echo ($_SESSION['user']['role'] == 'auteur') ? 'disabled' : ''; ?>>
-                                            <option value="draft" <?php echo ($_POST['status'] ?? 'draft') == 'draft' ? 'selected' : ''; ?>>
-                                                Brouillon
-                                            </option>
-                                            <?php if ($_SESSION['user']['role'] != 'auteur'): ?>
-                                            <option value="published" <?php echo ($_POST['status'] ?? '') == 'published' ? 'selected' : ''; ?>>
-                                                Publié
-                                            </option>
-                                            <?php endif; ?>
-                                            <option value="archived" <?php echo ($_POST['status'] ?? '') == 'archived' ? 'selected' : ''; ?>>
-                                                Archivé
-                                            </option>
-                                        </select>
-                                        <?php if ($_SESSION['user']['role'] == 'auteur'): ?>
-                                            <input type="hidden" name="status" value="draft">
-                                            <small class="text-muted">Les articles des auteurs doivent être approuvés par un éditeur</small>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Résumé -->
-                                    <div class="mb-4">
-                                        <label for="excerpt" class="form-label">Résumé (optionnel)</label>
-                                        <textarea class="form-control" 
-                                                  id="excerpt" 
-                                                  name="excerpt" 
-                                                  rows="3"
-                                                  placeholder="Un court résumé qui apparaîtra dans les listes d'articles"><?php echo htmlspecialchars($_POST['excerpt'] ?? ''); ?></textarea>
-                                        <small class="text-muted">Maximum 200 caractères</small>
-                                    </div>
-                                    
-                                    <!-- Boutons -->
-                                    <div class="d-grid gap-2">
-                                        <button type="submit" name="save" value="draft" class="btn btn-outline-warning">
-                                            <i class="bi bi-save"></i> Enregistrer comme brouillon
-                                        </button>
-                                        
-                                        <?php if($_SESSION['user']['role'] != 'auteur'): ?>
-                                            <button type="submit" name="save" value="publish" class="btn btn-success">
-                                                <i class="bi bi-send"></i> Publier maintenant
-                                            </button>
-                                        <?php else: ?>
-                                            <button type="submit" name="save" value="submit" class="btn btn-primary">
-                                                <i class="bi bi-send"></i> Soumettre pour publication
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
+                        <div class="form-group">
+                            <label for="id_categorie" class="form-label">Catégorie *</label>
+                            <select class="form-control" id="id_categorie" required>
+                                <option value="">Sélectionnez une catégorie</option>
+                                <?php foreach($categories as $cat): ?>
+                                    <option value="<?php echo $cat['id_categorie']; ?>" 
+                                        <?php echo ($_POST['id_categorie'] ?? '') == $cat['id_categorie'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($cat['nom_categorie']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="hint-text">
+                                <i class="bi bi-tag"></i>
+                                Choisissez la catégorie la plus pertinente pour votre article
                             </div>
                         </div>
                     </div>
-                </form>
+                    
+                    <!-- Statut -->
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <div class="sidebar-icon">
+                                <i class="bi bi-flag"></i>
+                            </div>
+                            <h3 class="sidebar-title">Statut</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Statut de publication</label>
+                            <div class="status-selector">
+                                <div class="status-option active" data-status="draft">
+                                    Brouillon
+                                </div>
+                                <?php if ($_SESSION['user']['role'] != 'auteur'): ?>
+                                <div class="status-option" data-status="published">
+                                    Publié
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <?php if ($_SESSION['user']['role'] == 'auteur'): ?>
+                            <div class="hint-text">
+                                <i class="bi bi-shield-check"></i>
+                                Les articles des auteurs sont soumis pour approbation
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <div class="sidebar-icon">
+                                <i class="bi bi-lightning-charge"></i>
+                            </div>
+                            <h3 class="sidebar-title">Actions rapides</h3>
+                        </div>
+                        <div class="stats-grid">
+                            <button type="button" onclick="saveArticle()" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Enregistrer l'article
+                            </button>
+                            
+                            <a href="articles.php" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                            
+                            <div class="stat-item">
+                                <span class="stat-label">
+                                    <i class="bi bi-clock-history"></i>
+                                    Dernière sauvegarde
+                                </span>
+                                <span class="stat-value" id="lastSave">--:--</span>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <span class="stat-label">
+                                    <i class="bi bi-file-text"></i>
+                                    Statut actuel
+                                </span>
+                                <span class="stat-value" id="currentStatus">Brouillon</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aide -->
+                    <div class="sidebar-card">
+                        <div class="sidebar-header">
+                            <div class="sidebar-icon">
+                                <i class="bi bi-question-circle"></i>
+                            </div>
+                            <h3 class="sidebar-title">Conseils</h3>
+                        </div>
+                        <div style="color: var(--gray-color); font-size: 0.9rem;">
+                            <div class="mb-2">
+                                <strong><i class="bi bi-check-circle text-success"></i> Titre percutant</strong><br>
+                                Un bon titre attire l'attention des lecteurs
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="bi bi-check-circle text-success"></i> Structure claire</strong><br>
+                                Utilisez des titres et sous-titres pour organiser votre contenu
+                            </div>
+                            <div>
+                                <strong><i class="bi bi-check-circle text-success"></i> Catégorie pertinente</strong><br>
+                                Choisissez la catégorie qui correspond le mieux à votre sujet
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <?php require_once '../includes/footer.php'; ?>
     
     <script>
-        // Simple éditeur de texte (pourrait être remplacé par TinyMCE)
-        document.getElementById('contenu').addEventListener('focus', function() {
-            if (this.value === '') {
-                this.value = '<p>Commencez à écrire votre article ici...</p>\n\n';
+        // Character counters
+        const titleInput = document.getElementById('titre');
+        const excerptInput = document.getElementById('excerpt');
+        const contentInput = document.getElementById('contenu');
+        const titleCounter = document.getElementById('titleCounter');
+        const excerptCounter = document.getElementById('excerptCounter');
+        const currentStatus = document.getElementById('currentStatus');
+        const lastSave = document.getElementById('lastSave');
+
+        function updateCounter(input, counter, max) {
+            const length = input.value.length;
+            counter.textContent = `${length}/${max} caractères`;
+            
+            if (length > max) {
+                counter.style.color = '#ef4444';
+            } else if (length > max * 0.9) {
+                counter.style.color = '#f59e0b';
+            } else {
+                counter.style.color = '#6b7280';
             }
+        }
+
+        titleInput.addEventListener('input', () => {
+            updateCounter(titleInput, titleCounter, 200);
+            updateLastSave();
         });
-        
-        // Gérer les boutons de soumission
-        document.querySelectorAll('button[type="submit"]').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const value = this.value;
-                const statusSelect = document.getElementById('status');
-                
-                if (value === 'publish') {
-                    statusSelect.value = 'published';
-                } else if (value === 'submit') {
-                    // Pour les auteurs, on soumet pour approbation
-                    statusSelect.value = 'draft';
-                    alert('Votre article a été soumis pour approbation par un éditeur.');
+
+        excerptInput.addEventListener('input', () => {
+            updateCounter(excerptInput, excerptCounter, 200);
+            updateLastSave();
+        });
+
+        contentInput.addEventListener('input', () => {
+            updateLastSave();
+        });
+
+        // Update last save time
+        function updateLastSave() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            lastSave.textContent = timeString;
+        }
+
+        // Status selector
+        document.querySelectorAll('.status-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Pour les auteurs, seuls les brouillons sont autorisés
+                const userRole = '<?php echo $_SESSION['user']['role']; ?>';
+                if (userRole === 'auteur' && this.dataset.status !== 'draft') {
+                    alert('Les auteurs ne peuvent que soumettre des articles en brouillon pour approbation.');
+                    return;
                 }
+                
+                document.querySelectorAll('.status-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('status').value = this.dataset.status;
+                currentStatus.textContent = this.dataset.status === 'draft' ? 'Brouillon' : 'Publié';
             });
         });
-        
-        // Validation du formulaire
-        document.getElementById('articleForm').addEventListener('submit', function(e) {
-            const titre = document.getElementById('titre').value.trim();
+
+        // Save article function
+        function saveArticle() {
+            const titre = titleInput.value.trim();
             const categorie = document.getElementById('id_categorie').value;
-            const contenu = document.getElementById('contenu').value.trim();
-            const excerpt = document.getElementById('excerpt').value;
-            
+            const contenu = contentInput.value.trim();
+            const excerpt = excerptInput.value;
+            const status = document.getElementById('status').value;
+            const userRole = '<?php echo $_SESSION['user']['role']; ?>';
+
             if (!titre) {
-                e.preventDefault();
-                alert('Veuillez saisir un titre');
-                document.getElementById('titre').focus();
-                return;
+                alert('Veuillez saisir un titre pour votre article');
+                titleInput.focus();
+                return false;
             }
-            
+
+            if (!contenu) {
+                alert('Veuillez saisir le contenu de votre article');
+                contentInput.focus();
+                return false;
+            }
+
             if (!categorie) {
-                e.preventDefault();
-                alert('Veuillez sélectionner une catégorie');
+                alert('Veuillez sélectionner une catégorie pour votre article');
                 document.getElementById('id_categorie').focus();
-                return;
+                return false;
             }
-            
-            if (!contenu || contenu === '<p>Commencez à écrire votre article ici...</p>\n\n') {
-                e.preventDefault();
-                alert('Veuillez saisir le contenu de l\'article');
-                document.getElementById('contenu').focus();
-                return;
-            }
-            
+
             if (excerpt.length > 200) {
-                e.preventDefault();
                 alert('Le résumé ne peut pas dépasser 200 caractères');
-                document.getElementById('excerpt').focus();
-                return;
+                excerptInput.focus();
+                return false;
             }
-        });
-        
-        // Compteur de caractères pour le résumé
-        document.getElementById('excerpt').addEventListener('input', function() {
-            const length = this.value.length;
-            const counter = this.nextElementSibling;
             
-            if (length > 200) {
-                counter.innerHTML = '<span class="text-danger">' + length + '/200 caractères</span>';
+            // Set selected category in hidden field
+            document.getElementById('selected_category').value = categorie;
+            
+            if (userRole === 'auteur') {
+                if (confirm('Soumettre cet article pour approbation par un éditeur ?')) {
+                    // Show loading state
+                    const submitBtn = document.querySelector('.btn-primary');
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Soumission...';
+                    submitBtn.disabled = true;
+                    
+                    setTimeout(() => {
+                        document.getElementById('articleForm').submit();
+                    }, 500);
+                }
             } else {
-                counter.innerHTML = '<span class="text-muted">' + length + '/200 caractères</span>';
+                if (status === 'published') {
+                    if (confirm('Êtes-vous sûr de vouloir publier cet article immédiatement ?')) {
+                        // Show loading state
+                        const submitBtn = document.querySelector('.btn-primary');
+                        submitBtn.innerHTML = '<i class="bi bi-rocket-takeoff"></i> Publication...';
+                        submitBtn.disabled = true;
+                        
+                        setTimeout(() => {
+                            document.getElementById('articleForm').submit();
+                        }, 500);
+                    }
+                } else {
+                    // Show loading state
+                    const submitBtn = document.querySelector('.btn-primary');
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Enregistrement...';
+                    submitBtn.disabled = true;
+                    
+                    setTimeout(() => {
+                        document.getElementById('articleForm').submit();
+                    }, 500);
+                }
             }
-        });
+        }
+
+        // Initialize counters
+        updateLastSave();
+        if (titleInput.value) updateCounter(titleInput, titleCounter, 200);
+        if (excerptInput.value) updateCounter(excerptInput, excerptCounter, 200);
+
+        // Auto-save indicator
+        setInterval(updateLastSave, 30000);
     </script>
 </body>
 </html>

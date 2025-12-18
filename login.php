@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
         .login-page {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background:  linear-gradient(135deg, #f75815 0%, #e77f52 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -120,12 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .form-control:focus {
-            border-color: #667eea;
+            border-color: #f75815
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
         
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background:  linear-gradient(135deg, #f75815 0%, #e77f52 100%);
             border: none;
             color: white;
             padding: 12px;
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .login-links a {
-            color: #667eea;
+            color: #f75815
             text-decoration: none;
         }
         
@@ -185,9 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body class="<?php echo $body_class; ?>">
     <div class="login-container">
-        <div class="logo">
-            <h2><?php echo SITE_NAME; ?><span>.</span></h2>
-        </div>
+        
         
         <div class="login-card">
             <div class="login-header">

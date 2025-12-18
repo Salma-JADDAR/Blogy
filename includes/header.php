@@ -107,8 +107,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </a>
                         <ul>
                             <?php if(hasAnyRole(['admin', 'editor', 'auteur'])): ?>
-                            <li><a href="<?php echo BASE_URL; ?>/admin/articles.php">Mes articles</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>/admin/article_new.php">Nouvel article</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/author/articles.php">Mes articles</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/author/article_new.php">Nouvel article</a></li>
                             <?php endif; ?>
                             
                             <?php if(hasAnyRole(['admin', 'editor'])): ?>
@@ -192,7 +192,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </li>
                     <?php endif; ?>
                     
-                    <li><a href="<?php echo BASE_URL; ?>/contact.php" <?php echo ($current_page == 'contact.php') ? 'class="active"' : ''; ?>>Contact</a></li>
+                    
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>

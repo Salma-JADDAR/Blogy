@@ -66,39 +66,7 @@ Ce document décrit les fonctionnalités, technologies et étapes pour mettre en
 * Protection **XSS** avec `htmlspecialchars()`
 * Validation stricte des formulaires
 
----
-
-## 🗂️ Architecture du Projet
-
-```
-BlogCMS/
-│
-├── config/
-│   └── database.php
-│
-├── public/
-│   ├── index.php
-│   ├── login.php
-│   ├── dashboard.php
-│   ├── articles/
-│   │   ├── create.php
-│   │   ├── edit.php
-│   │   └── delete.php
-│   └── assets/
-│       ├── css/
-│       └── img/
-│
-├── src/
-│   ├── auth/
-│   │   ├── login_handler.php
-│   │   └── logout.php
-│   ├── controllers/
-│   ├── models/
-│   └── helpers/
-│
-└── README.md
-```
-
+-
 ---
 
 ## 📝 Fichier de Connexion PDO (exemple)
