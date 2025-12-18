@@ -410,31 +410,33 @@ require_once 'includes/header.php';
                         </div>
                         
                         <div class="row gy-3">
-                            <?php if(!isset($_SESSION['user'])): ?>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="email" class="form-label">Email *</label>
-                                        <input type="email" name="email" class="form-control" id="email" 
-                                               placeholder="votre@email.com" required>
-                                        <div class="form-text">Votre email ne sera pas affiché publiquement</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="name" class="form-label">Nom (optionnel)</label>
-                                        <input type="text" name="name" class="form-control" id="name" 
-                                               placeholder="Votre nom">
-                                        <div class="form-text">Si vide, votre pseudo email sera utilisé</div>
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="col-12">
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-person"></i> Vous commentez en tant que: 
-                                        <strong><?php echo htmlspecialchars($_SESSION['user']['nom']); ?></strong>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
+                           // Dans la section formulaire de commentaires, modifier :
+<?php if(!isset($_SESSION['user'])): ?>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="email" class="form-label">Email *</label>
+            <input type="email" name="email" class="form-control" id="email" 
+                   placeholder="votre@email.com" required>
+            <div class="form-text">Votre email ne sera pas affiché publiquement</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="name" class="form-label">Nom (optionnel)</label>
+            <input type="text" name="name" class="form-control" id="name" 
+                   placeholder="Votre nom">
+            <div class="form-text">Si vide, votre pseudo email sera utilisé</div>
+        </div>
+    </div>
+<?php else: ?>
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-person"></i> Vous commentez en tant que: 
+            <strong><?php echo htmlspecialchars($_SESSION['user']['nom']); ?></strong>
+        </div>
+    </div>
+<?php endif; ?>
+                              
                             
                             <div class="col-12">
                                 <div class="form-group">

@@ -1,5 +1,8 @@
 <?php
-session_start();
+// Démarrer la session UNIQUEMENT si elle n'est pas déjà démarrée
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Configuration de la base de données
 define('DB_HOST', 'localhost');
